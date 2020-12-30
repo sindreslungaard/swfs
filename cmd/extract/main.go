@@ -22,6 +22,7 @@ func main() {
 
 	input := flag.String("input", "", "The directory to read swf files from")
 	output := flag.String("output", "", "The directory to output files from")
+	workers := flag.Int("workers", 5, "The amount of concurrent workers")
 
 	flag.Parse()
 
@@ -42,7 +43,7 @@ func main() {
 	progress := make(chan string)
 	done := make(chan bool)
 
-	go extractor.Process(*output, progress, done)
+	go extractor.Process(*workers, *output, progress, done)
 
 	for {
 
@@ -53,7 +54,7 @@ func main() {
 			}
 		case <-done:
 			{
-				println("yay")
+				println("Done")
 				return
 			}
 		}

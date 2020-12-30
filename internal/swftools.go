@@ -24,6 +24,7 @@ type Definition struct {
 // Extractor struct
 type Extractor struct {
 	files  []SWF
+	jobs   chan SWF
 	stdout io.Writer
 }
 
@@ -43,109 +44,114 @@ func (e *Extractor) Upload(path string, info os.FileInfo, err error) error {
 
 // Process extracts the uploaded files and sends the result to the receiver channel
 // once finished, done channel is sent a message
-func (e *Extractor) Process(output string, progress chan string, done chan bool) {
+func (e *Extractor) Process(workers int, output string, progress chan string, done chan bool) {
 
-	var wg sync.WaitGroup
+	e.jobs = make(chan SWF)
 
-	for i := range e.files {
+	for i := 0; i < workers; i++ {
+		println("Started worker ", i)
+		go worker(e.jobs, progress, output)
+	}
 
-		wg.Add(1)
+	for _, file := range e.files {
+		e.jobs <- file
+	}
 
-		go func(file SWF) {
+	close(e.jobs)
 
-			defer wg.Done()
+	done <- true
 
-			out, err := exec.Command("swfdump", file.path).Output()
+}
 
-			if err != nil {
-				println(fmt.Sprint(err))
-				return
-			}
+func worker(jobs chan SWF, progress chan string, output string) {
 
-			definitions := make(map[string]*Definition)
-			exports := make(map[string]string)
+	for file := range jobs {
 
-			lines := strings.Split(string(out), "\n")
-			for l := range lines {
+		out, err := exec.Command("swfdump", file.path).Output()
 
-				line := strings.ReplaceAll(lines[l], "\r", "")
+		if err != nil {
+			println(fmt.Sprint(err))
+			return
+		}
 
-				if strings.Contains(line, "defines id") {
+		definitions := make(map[string]*Definition)
+		exports := make(map[string]string)
 
-					def := &Definition{}
+		lines := strings.Split(string(out), "\n")
+		for l := range lines {
 
-					if strings.Contains(line, "DEFINEBINARY") {
-						def.arg = "-b"
-						def.ext = "bin"
-					} else if strings.Contains(line, "DEFINEBITSLOSSLESS2") {
-						def.arg = "-p"
-						def.ext = "png"
-					} else {
-						continue
-					}
+			line := strings.ReplaceAll(lines[l], "\r", "")
 
-					id := strings.Split(strings.Split(line, "defines id ")[1], " ")[0]
+			if strings.Contains(line, "defines id") {
 
-					definitions[id] = def
+				def := &Definition{}
 
-				} else if strings.Contains(line, "exports") {
-
-					id := strings.Split(strings.Split(line, "exports ")[1], " ")[0]
-					name := strings.Split(line, "\"")[1]
-
-					exports[id] = name
-
+				if strings.Contains(line, "DEFINEBINARY") {
+					def.arg = "-b"
+					def.ext = "bin"
+				} else if strings.Contains(line, "DEFINEBITSLOSSLESS2") {
+					def.arg = "-p"
+					def.ext = "png"
 				} else {
 					continue
 				}
 
+				id := strings.Split(strings.Split(line, "defines id ")[1], " ")[0]
+
+				definitions[id] = def
+
+			} else if strings.Contains(line, "exports") {
+
+				id := strings.Split(strings.Split(line, "exports ")[1], " ")[0]
+				name := strings.Split(line, "\"")[1]
+
+				exports[id] = name
+
+			} else {
+				continue
 			}
 
-			if _, err := os.Stat(fmt.Sprintf("%s/%s", output, file.name)); os.IsNotExist(err) {
-				os.Mkdir(fmt.Sprintf("%s/%s", output, file.name), 0755)
+		}
+
+		if _, err := os.Stat(fmt.Sprintf("%s/%s", output, file.name)); os.IsNotExist(err) {
+			os.Mkdir(fmt.Sprintf("%s/%s", output, file.name), 0755)
+		}
+
+		var wg2 sync.WaitGroup
+
+		for id, def := range definitions {
+
+			name, ok := exports[id]
+
+			if !ok {
+				continue
 			}
 
-			var wg2 sync.WaitGroup
+			wg2.Add(1)
 
-			for id, def := range definitions {
+			go func(id2 string, def2 *Definition, waitgroup2 *sync.WaitGroup) {
+				defer waitgroup2.Done()
+				_, err := exec.Command(
+					"swfextract",
+					def2.arg,
+					id2,
+					"-o",
+					output+"/"+file.name+"/"+name+"."+def2.ext,
+					file.path,
+				).Output()
 
-				name, ok := exports[id]
-
-				if !ok {
-					continue
+				if err != nil {
+					fmt.Print(err)
 				}
+			}(id, def, &wg2)
 
-				wg2.Add(1)
+		}
 
-				go func(id2 string, def2 *Definition, waitgroup2 *sync.WaitGroup) {
-					defer waitgroup2.Done()
-					_, err := exec.Command(
-						"swfextract",
-						def2.arg,
-						id2,
-						"-o",
-						output+"/"+file.name+"/"+name+"."+def2.ext,
-						file.path,
-					).Output()
+		wg2.Wait()
 
-					if err != nil {
-						fmt.Print(err)
-					}
-				}(id, def, &wg2)
-
-			}
-
-			wg2.Wait()
-
-			progress <- file.name
-
-		}(e.files[i])
+		progress <- file.name
 
 	}
-
-	wg.Wait()
-
-	done <- true
 
 }
 
