@@ -22,7 +22,7 @@ func main() {
 
 	input := flag.String("input", "", "The directory to read swf files from")
 	output := flag.String("output", "", "The directory to output files from")
-	workers := flag.Int("workers", 5, "The amount of concurrent workers")
+	workers := flag.Int("workers", 2, "The amount of concurrent workers")
 
 	flag.Parse()
 
