@@ -17,7 +17,10 @@ In the end, the commands `swfdump` and `swfextract` should be callable from the 
 
 ### 3. Usage
 
-#### Extract
+Explore the different tools below by expanding the details.
+
+##### Extracter
+<details>
 The extract tool dumps all png and binary files of the swf files in a directory.
 
 | Argument  | Explanation |
@@ -27,5 +30,41 @@ The extract tool dumps all png and binary files of the swf files in a directory.
 | [workers] | Size of worker pool. Higher number will increase the concurrent use of swfdump and swfextract. Default is 2.
 
 ```bash
-./extract -input /swfdir -output /outputdir -workers 2
+./extract -input /swfdir -output /extracted -workers 2
 ```
+</details>
+
+##### Bundler
+<details>
+The bundle tool replaces the extracted folders into individual  `.asset` files.
+
+| Argument  | Explanation |
+| ------------- | ------------- |
+| input         | Path to the directory where the extracted files are located |
+| [workers] | Size of worker pool. Higher number will increase the concurrency of the program. Default is 5.|
+
+```bash
+./bundle -input ./extracted -workers 5
+```
+
+The `.asset` file structure:
+```bash
+## Content of .asset files are structured as key value pairs
+## separated by "=\n". Multiple assets are separated with 
+## double newline "\n\n"
+
+version=1 # Format version used, always first line
+
+
+some_extracted_image.png=
+�PNG...
+
+
+some_extracted_binary.bin=
+<xml>
+    ....
+</xml>
+```
+
+To parse `.asset` files, split on `\n\n`, then loop through each part. Split each part on `=\n` to get [0]filename and [1]filedata. 
+</details>
