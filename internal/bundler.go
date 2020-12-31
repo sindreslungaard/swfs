@@ -83,7 +83,7 @@ func (b *Bundler) worker(jobs chan string, progress chan string, wg *sync.WaitGr
 
 		output := []byte{}
 
-		output = append(output, []byte("version=1")...)
+		output = append(output, []byte("version=\n1")...)
 
 		for name, data := range files {
 
