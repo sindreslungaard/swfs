@@ -52,9 +52,12 @@ func (e *Extractor) Process(workers int, output string, progress chan string, do
 
 	e.jobs = make(chan SWF)
 
+	var wg sync.WaitGroup
+
 	for i := 0; i < workers; i++ {
 		println("Started worker ", i)
-		go e.worker(e.jobs, progress, output)
+		wg.Add(1)
+		go e.worker(e.jobs, progress, output, &wg)
 	}
 
 	for _, file := range e.files {
@@ -63,11 +66,15 @@ func (e *Extractor) Process(workers int, output string, progress chan string, do
 
 	close(e.jobs)
 
+	wg.Wait()
+
 	done <- true
 
 }
 
-func (e *Extractor) worker(jobs chan SWF, progress chan string, output string) {
+func (e *Extractor) worker(jobs chan SWF, progress chan string, output string, wg *sync.WaitGroup) {
+
+	defer wg.Done()
 
 	for file := range jobs {
 
