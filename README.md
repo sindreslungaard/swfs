@@ -2,7 +2,7 @@
 swfs is a set of cli tools towork with swf files.
 
 ### 1. Download the latest release of swfs
-....
+https://github.com/sindreslungaard/swfs/releases/tag/1.0.0
 
 ### 2. Install `swftools` (http://www.swftools.org/)
 
