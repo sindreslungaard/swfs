@@ -27,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	if *input == "" || *output == "" {
-		println("Missing required arguments, use 'swfs -help' for more info")
+		println("Missing required arguments, use 'extract -help' for more information")
 		return
 	}
 
