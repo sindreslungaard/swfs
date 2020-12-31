@@ -31,7 +31,7 @@ func main() {
 
 	for _, file := range files {
 		if !file.IsDir() {
-			return
+			continue
 		}
 		bundler.Upload(*input + "/" + file.Name())
 	}

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -87,10 +88,16 @@ func (b *Bundler) worker(jobs chan string, progress chan string, wg *sync.WaitGr
 
 		for name, data := range files {
 
+			d := data
+
+			if strings.Contains(name, ".png") {
+				d = []byte(b64.StdEncoding.EncodeToString(data))
+			}
+
 			output = append(output, []byte("\n\n")...)
 			output = append(output, []byte(name)...)
 			output = append(output, []byte("=\n")...)
-			output = append(output, []byte(strings.ReplaceAll(string(data), "\n\n", ""))...)
+			output = append(output, []byte(strings.ReplaceAll(string(d), "\n\n", ""))...)
 
 		}
 

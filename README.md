@@ -54,9 +54,10 @@ The `.asset` file structure:
 ```bash
 ## Content of .asset files are structured as key value pairs
 ## separated by "=\n". Multiple assets are separated with 
-## double newline "\n\n"
+## double newline "\n\n". First line is always the format version.
 
-version=1 # Format version used, always first line
+version=
+1
 
 
 some_extracted_image.png=
