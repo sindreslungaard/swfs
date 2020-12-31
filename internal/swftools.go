@@ -34,6 +34,10 @@ func (e *Extractor) Upload(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
+	if !strings.Contains(path, ".swf") {
+		return nil
+	}
+
 	e.files = append(e.files, SWF{
 		path: path,
 		name: strings.ReplaceAll(info.Name(), ".swf", ""),
@@ -50,7 +54,7 @@ func (e *Extractor) Process(workers int, output string, progress chan string, do
 
 	for i := 0; i < workers; i++ {
 		println("Started worker ", i)
-		go worker(e.jobs, progress, output)
+		go e.worker(e.jobs, progress, output)
 	}
 
 	for _, file := range e.files {
@@ -63,7 +67,7 @@ func (e *Extractor) Process(workers int, output string, progress chan string, do
 
 }
 
-func worker(jobs chan SWF, progress chan string, output string) {
+func (e *Extractor) worker(jobs chan SWF, progress chan string, output string) {
 
 	for file := range jobs {
 
