@@ -94,10 +94,13 @@ func (b *Bundler) worker(jobs chan string, progress chan string, wg *sync.WaitGr
 				d = []byte(b64.StdEncoding.EncodeToString(data))
 			}
 
+			d = []byte(strings.ReplaceAll(string(d), "=\n", "="))
+			d = []byte(strings.ReplaceAll(string(d), "\n\n", ""))
+
 			output = append(output, []byte("\n\n")...)
 			output = append(output, []byte(name)...)
 			output = append(output, []byte("=\n")...)
-			output = append(output, []byte(strings.ReplaceAll(string(d), "\n\n", ""))...)
+			output = append(output, d...)
 
 		}
 
