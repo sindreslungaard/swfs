@@ -1,28 +1,24 @@
 ## swfs
-swfs is a set of cli tools towork with swf files.
+swfs is a set of cli tools to work with swf files.
 
-### 1. Download the latest release of swfs
-https://github.com/sindreslungaard/swfs/releases/tag/1.0.0
+### 1. Download swfs
+Download the [latest release](https://github.com/sindreslungaard/swfs/releases/latest) of swfs for your operating system of choice.
+
 
 ### 2. Install `swftools` (http://www.swftools.org/)
 
-For the asset dumping & extraction process to work correctly, `swftools` needs to be installed in your system.
-Download `swftools` [here](http://www.swftools.org/download.html) and install it.
+swfs uses swftools under the hood, make sure you have it installed on your system and added to your PATH.
 
-| OS  | Download link |
+|[swftools windows](http://www.swftools.org/swftools-2013-04-09-1007.exe)|[swftools linux](http://www.swftools.org/swftools-2013-04-09-1007.tar.gz)|
 | ------------- | ------------- |
-| Windows       | http://www.swftools.org/swftools-2013-04-09-1007.exe  |
-| Linux         | http://www.swftools.org/swftools-2013-04-09-1007.tar.gz  |
 
-
-After installation, add the installation directory of `swftools` to your systems `PATH` variable.
-In the end, the commands `swfdump` and `swfextract` should be callable from the command line.
+`swfdump` and `swfextract` should be runnable from your commandline.
 
 ### 3. Usage
 
 Explore the different tools below by expanding the details.
 
-##### Extracter
+##### Extracter `./swfs [options] extract`
 <details>
 The extract tool dumps all png and binary files of the swf files in a directory.
 
@@ -33,11 +29,11 @@ The extract tool dumps all png and binary files of the swf files in a directory.
 | [workers] | Size of worker pool. Higher number will increase the concurrent use of swfdump and swfextract. Default is 2.
 
 ```bash
-./extract -input /swfdir -output /extracted -workers 2
+./swfs -input /swfdir -output /extracted -workers 2 extract
 ```
 </details>
 
-##### Bundler
+##### Bundler `./swfs [options] bundle`
 <details>
 The bundle tool replaces the extracted folders into individual  `.asset` files.
 
@@ -47,7 +43,7 @@ The bundle tool replaces the extracted folders into individual  `.asset` files.
 | [workers] | Size of worker pool. Higher number will increase the concurrency of the program. Default is 5.|
 
 ```bash
-./bundle -input ./extracted -workers 5
+./swfs -input ./extracted -workers 5 bundle
 ```
 
 The `.asset` file structure:
