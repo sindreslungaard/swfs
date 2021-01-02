@@ -9,6 +9,7 @@ jobs:
   build:
     name: GoReleaser build
     runs-on: ubuntu-latest
+    
 
     steps:
       - name: Check out code into the Go module directory
@@ -27,6 +28,6 @@ jobs:
         with:
           version: latest
           args: release --rm-dist
-          workdir: ./cmd/extract
+          workdir: ./cmd/swfs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

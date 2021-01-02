@@ -1,28 +1,23 @@
-package main
+package bundle
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 
 	"github.com/sindreslungaard/swfs/internal"
 )
 
-func main() {
+// Execute runs the bundle cli tool
+func Execute(input string, workers int) {
 
-	input := flag.String("input", "", "The directory with extracted swfs to convert")
-	workers := flag.Int("workers", 5, "The amount of concurrent workers")
-
-	flag.Parse()
-
-	if *input == "" {
-		println("Missing required arguments, use 'bundle -help' for more information")
+	if input == "" {
+		println("Missing required arguments, use 'swfs -help' for more information")
 		return
 	}
 
 	bundler := &internal.Bundler{}
 
-	files, err := ioutil.ReadDir(*input)
+	files, err := ioutil.ReadDir(input)
 
 	if err != nil {
 		fmt.Print(err)
@@ -33,7 +28,7 @@ func main() {
 		if !file.IsDir() {
 			continue
 		}
-		bundler.Upload(*input + "/" + file.Name())
+		bundler.Upload(input + "/" + file.Name())
 	}
 
 	if err != nil {
@@ -44,7 +39,7 @@ func main() {
 	progress := make(chan string)
 	done := make(chan bool)
 
-	go bundler.Process(*workers, progress, done)
+	go bundler.Process(workers, progress, done)
 
 	for {
 
